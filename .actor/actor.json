@@ -1,0 +1,9 @@
+{
+  "actorSpecification": 1,
+  "name": "sales-navigator-scraper-no-cookies",
+  "title": "Sales Navigator Scraper No Cookies",
+  "version": "0.1",
+  "buildTag": "latest",
+  "environmentVariables": {},
+  "dockerfile": "./Dockerfile"
+}
