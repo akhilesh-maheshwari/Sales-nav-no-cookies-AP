@@ -11,9 +11,9 @@ try {
   const serviceTagName = input.fileName    || '';
   const salesNavUrl    = input.salesNavUrl || '';
   const leadCount      = parseInt(input.leadCount || '100');
-  const serviceName    = 'Sales Navigator Scraper No Cookies';
-  const serviceOption1 = 'sales_navigator_no_cookies';
-  const requestSource  = 'Sales_Navigator_Scraper_No_Cookies_AP';
+  const serviceName    = 'Sales Navigator Scraper';
+  const serviceOption1 = 'sales_navigator';
+  const requestSource  = 'Sales_Navigator_Scraper_AP';
   const boomerangInputUrl = 'https://s1.boomerangserver.co.in/webhook/private-sales-nav-scraper';
   const boomerangStatUrl  = 'https://s1.boomerangserver.co.in/webhook/private-sales-nav-scraper-stats';
 
@@ -27,7 +27,16 @@ try {
   if (!leadCount || leadCount < 1) throw new Error('leadCount must be at least 100!');
 
   // ──────────────────────────────
-  // 2. GET APIFY RUN DETAILS
+  // 2. BUILD CSV CONTENT
+  // ──────────────────────────────
+  const rowCount   = leadCount;
+  const csvContent = `salesNavUrl,leadCount,fileName\n${salesNavUrl},${leadCount},${serviceTagName}`;
+  const fileName   = serviceTagName.replace(/[^a-zA-Z0-9]/g, '_') + '_' + new Date().toISOString().replace(/[:.]/g, '-') + '.csv';
+
+  console.log('CSV Content:\n', csvContent);
+
+  // ──────────────────────────────
+  // 3. GET APIFY RUN DETAILS
   // ──────────────────────────────
   const env    = Actor.getEnv();
   const userId = env.userId     || 'unknown';
@@ -42,14 +51,13 @@ try {
     hour12  : true,
     timeZone: 'Asia/Kolkata'
   });
-  const fileName = serviceTagName.replace(/[^a-zA-Z0-9]/g, '_') + '_' + now.toISOString().replace(/[:.]/g, '-') + '.csv';
 
   console.log('User ID :', userId);
   console.log('Run ID  :', runId);
   console.log('Time    :', time);
 
   // ──────────────────────────────
-  // 3. FREE TRIAL CHECK
+  // 4. FREE TRIAL CHECK
   // ──────────────────────────────
   const FREE_TRIAL_LEADS = 50;
 
@@ -67,17 +75,17 @@ try {
   }
 
   // ──────────────────────────────
-  // 4. CALCULATE COST
+  // 5. CALCULATE COST
   // ──────────────────────────────
-  const chargeableRows = Math.max(0, leadCount - freeLeadsRemaining);
+  const chargeableRows = Math.max(0, rowCount - freeLeadsRemaining);
   const creditsCost    = parseFloat((chargeableRows * 0.005).toFixed(3));
-  console.log('Lead count     :', leadCount);
+  console.log('Lead count     :', rowCount);
   console.log('Free leads     :', isFirstTime ? FREE_TRIAL_LEADS : 0);
   console.log('Chargeable rows:', chargeableRows);
   console.log('Credits cost   : $', creditsCost);
 
   // ──────────────────────────────
-  // 5. FETCH DRIVE CSV + PUSH ROWS
+  // 6. FETCH DRIVE CSV + PUSH ROWS
   // ──────────────────────────────
   const fetchAndPushDriveData = async (outputLink, batch_number) => {
     try {
@@ -145,7 +153,7 @@ try {
   };
 
   // ──────────────────────────────
-  // 6. STEP 1 — TRIGGER MASTER FLOW
+  // 7. STEP 1 — TRIGGER MASTER FLOW
   // ──────────────────────────────
   console.log('\n════════════════════════════════════');
   console.log('Step 1 : Setting up master & batches');
@@ -164,9 +172,9 @@ try {
           runId,
           time,
           serviceTagName,
-          rowCount         : leadCount,
+          rowCount,
           creditsCost,
-          csvContent       : '',
+          csvContent,
           uploadedFile     : '',
           fileName,
           salesNavUrl,
@@ -207,7 +215,7 @@ try {
   console.log('   Total Batches :', total_batches);
 
   // ──────────────────────────────
-  // 7. STEP 2 — PROCESS BATCHES
+  // 8. STEP 2 — PROCESS BATCHES
   // ──────────────────────────────
   let round              = 0;
   let allOutputLinks     = [];
@@ -231,7 +239,7 @@ try {
             runId,
             time,
             serviceTagName,
-            rowCount         : leadCount,
+            rowCount,
             creditsCost,
             boomerangInputUrl,
             service_option_1 : serviceOption1,
@@ -302,7 +310,7 @@ try {
                   runId,
                   time,
                   serviceTagName,
-                  rowCount   : job.batch_size || leadCount,
+                  rowCount   : job.batch_size || rowCount,
                   creditsCost
                 })
               }
@@ -341,8 +349,11 @@ try {
               headers: { 'Content-Type': 'application/json' },
               signal : AbortSignal.timeout(30000),
               body   : JSON.stringify({
-                userId, runId, time, serviceTagName,
-                rowCount          : job.batch_size || leadCount,
+                userId,
+                runId,
+                time,
+                serviceTagName,
+                rowCount          : job.batch_size || rowCount,
                 creditsCost,
                 request_id,
                 requestStatus     : 'Error',
@@ -358,6 +369,7 @@ try {
               })
             }
           );
+          console.log(`  📤 Batch ${batch_number} — Error status sent to webhook.`);
         } catch (err) {
           console.log(`  ⚠️ Batch ${batch_number} — Failed to notify webhook: ${err.message}`);
         }
@@ -380,7 +392,12 @@ try {
 
       if (result.status !== 'Completed') {
         console.log(`  ⚠️ Batch ${batch_number} did not complete. Skipping output.`);
-        batchResults.push({ batch_number, request_id, status: result.status || 'Error', output_url: '' });
+        batchResults.push({
+          batch_number,
+          request_id,
+          status     : result.status || 'Error',
+          output_url : ''
+        });
         allOutputLinks.push('');
         continue;
       }
@@ -396,8 +413,11 @@ try {
             headers: { 'Content-Type': 'application/json' },
             signal : AbortSignal.timeout(60000),
             body   : JSON.stringify({
-              userId, runId, time, serviceTagName,
-              rowCount         : job.batch_size || leadCount,
+              userId,
+              runId,
+              time,
+              serviceTagName,
+              rowCount         : job.batch_size || rowCount,
               creditsCost,
               request_id,
               requestStatus    : result.status,
@@ -421,12 +441,19 @@ try {
           } catch (e) {
             console.log(`  Batch ${batch_number} output parse failed.`);
           }
+        } else {
+          console.log(`  ❌ No response, please try again.`);
         }
       } catch (fetchErr) {
         console.log(`  ❌ No response, please try again.`);
       }
 
-      batchResults.push({ batch_number, request_id, status: result.status, output_url: outputLink });
+      batchResults.push({
+        batch_number,
+        request_id,
+        status     : result.status,
+        output_url : outputLink
+      });
       allOutputLinks.push(outputLink);
 
       // ── CHARGE AFTER DELIVERY ──
@@ -445,9 +472,9 @@ try {
             usedAt  : new Date().toISOString(),
             runId,
             service : serviceName,
-            rowCount: leadCount
+            rowCount
           });
-          console.log(`  🎁 Free trial marked as used.`);
+          console.log(`  🎁 Free trial marked as used after first successful delivery.`);
         }
 
         const freeForBatch    = Math.min(freeLeadsRemaining, rowsPushed);
@@ -456,7 +483,7 @@ try {
         totalFreeUsed        += freeForBatch;
 
         if (freeForBatch > 0) {
-          console.log(`  🎁 Batch ${batch_number} — ${freeForBatch} rows FREE. ${chargeableLeads} chargeable.`);
+          console.log(`  🎁 Batch ${batch_number} — ${freeForBatch} rows FREE (trial). ${chargeableLeads} rows chargeable.`);
         }
 
         if (chargeableLeads > 0) {
@@ -466,7 +493,7 @@ try {
           try {
             await Actor.charge({ eventName: serviceOption1, count: chargeableLeads });
           } catch (chargeErr) {
-            const remainingLeads = leadCount - totalRowsDelivered;
+            const remainingLeads = rowCount - totalRowsDelivered;
             const remainingCost  = parseFloat((remainingLeads * 0.005).toFixed(3));
             console.log(`\n❌ Insufficient Apify credits — run stopped.`);
             console.log(`✅ Leads delivered : ${totalRowsDelivered}`);
@@ -476,22 +503,26 @@ try {
             await Actor.exit('Insufficient credits. Add funds at apify.com/billing and re-run.');
           }
         } else {
-          console.log(`  ✅ Batch ${batch_number} — Fully covered by free trial.`);
+          console.log(`  ✅ Batch ${batch_number} — Fully covered by free trial. No charge.`);
         }
       } else {
         console.log(`  ⚠️ Batch ${batch_number} — 0 rows pushed, skipping charge.`);
       }
     }
 
-    console.log(`\n✅ Round ${round} complete.`);
+    console.log(`\n✅ Round ${round} Results:`);
     for (const result of batchResults) {
-      console.log(`   📦 Batch ${result.batch_number} | Status: ${result.status} | Output: ${result.output_url || 'N/A'}`);
+      console.log(`\n   📦 Batch ${result.batch_number}`);
+      console.log(`      Request ID  : ${result.request_id}`);
+      console.log(`      Status      : ${result.status}`);
+      console.log(`      Output Link : ${result.output_url}`);
     }
 
     allBatchResults = allBatchResults.concat(batchResults);
 
     console.log(`\n⏳ Checking for next pending batch...`);
     batchJobs = await getNextBatchJobs();
+
     if (!batchJobs || batchJobs.length === 0) {
       console.log('✅ No more pending batches — all done!');
       break;
@@ -499,7 +530,7 @@ try {
   }
 
   // ──────────────────────────────
-  // 8. FINAL SUMMARY
+  // 9. FINAL SUMMARY
   // ──────────────────────────────
   const completedCount = allBatchResults.filter(b => b.status === 'Completed').length;
   const errorCount     = allBatchResults.filter(b => b.status !== 'Completed').length;
