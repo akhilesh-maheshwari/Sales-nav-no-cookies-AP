@@ -1,5 +1,5 @@
 {
-  "title": "Sales Navigator Scraper No Cookies",
+  "title": "Sales Navigator Scraper",
   "description": "Scrape leads from LinkedIn Sales Navigator.",
   "type": "object",
   "schemaVersion": 1,
@@ -8,7 +8,8 @@
       "title": "Please share the complete LinkedIn Sales Navigator Search URL.",
       "type": "string",
       "description": "Full Sales Navigator people search URL.",
-      "editor": "textfield"
+      "editor": "textfield",
+      "prefill": ""prefill": "https://www.linkedin.com/sales/search/people?query=(filters%3AList((type%3AINDUSTRY%2Cvalues%3AList((id%3A4%2Ctext%3ASoftware%2520and%2520IT%2520Services%2CselectionType%3AINCLUDED))%2C(type%3AGEO%2Cvalues%3AList((id%3A103644278%2Ctext%3AUnited%2520States%2CselectionType%3AINCLUDED))%2C(type%3ASENIORITY_LEVEL%2Cvalues%3AList((id%3A4%2Ctext%3ADirector%2CselectionType%3AINCLUDED)%2C(id%3A5%2Ctext%3AVice%2520President%2CselectionType%3AINCLUDED)%2C(id%3A6%2Ctext%3AC-Level%2CselectionType%3AINCLUDED)))))&sessionId=abc123""
     },
     "leadCount": {
       "title": "How many leads you want?",
@@ -23,8 +24,9 @@
     "fileName": {
       "title": "Name your result file",
       "type": "string",
-      "description": "Used to tag your output.",
-      "editor": "textfield"
+      "description": "Used to tag your output. No special characters needed.",
+      "editor": "textfield",
+      "prefill": "my_leads_export"
     }
   },
   "required": ["salesNavUrl", "leadCount", "fileName"]
