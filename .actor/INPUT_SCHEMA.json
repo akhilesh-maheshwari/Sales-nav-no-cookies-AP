@@ -1,5 +1,5 @@
 {
-  "title": "Sales Navigator Scraper",
+  "title": "Sales Navigator Scraper No Cookies",
   "description": "Scrape leads from LinkedIn Sales Navigator.",
   "type": "object",
   "schemaVersion": 1,
@@ -9,7 +9,8 @@
       "type": "string",
       "description": "Full Sales Navigator people search URL.",
       "editor": "textfield",
-      "prefill": "https://www.linkedin.com/sales/search/people?query=(filters%3AList((type%3AINDUSTRY%2Cvalues%3AList((id%3A4%2Ctext%3ASoftware%2520and%2520IT%2520Services%2CselectionType%3AINCLUDED))%2C(type%3AGEO%2Cvalues%3AList((id%3A103644278%2Ctext%3AUnited%2520States%2CselectionType%3AINCLUDED))%2C(type%3ASENIORITY_LEVEL%2Cvalues%3AList((id%3A4%2Ctext%3ADirector%2CselectionType%3AINCLUDED)%2C(id%3A5%2Ctext%3AVice%2520President%2CselectionType%3AINCLUDED)%2C(id%3A6%2Ctext%3AC-Level%2CselectionType%3AINCLUDED)))))&sessionId=abc123""},
+      "prefill": "https://www.linkedin.com/sales/search/people?query=(filters%3AList((type%3AINDUSTRY%2Cvalues%3AList((id%3A4%2Ctext%3ASoftware%2520and%2520IT%2520Services%2CselectionType%3AINCLUDED))),(type%3AGEO%2Cvalues%3AList((id%3A103644278%2Ctext%3AUnited%2520States%2CselectionType%3AINCLUDED))),(type%3ASENIORITY_LEVEL%2Cvalues%3AList((id%3A4%2Ctext%3ADirector%2CselectionType%3AINCLUDED),(id%3A5%2Ctext%3AVice%2520President%2CselectionType%3AINCLUDED),(id%3A6%2Ctext%3AC-Level%2CselectionType%3AINCLUDED)))))&sessionId=abc123"
+    },
     "leadCount": {
       "title": "How many leads you want?",
       "type": "integer",
