@@ -30,7 +30,7 @@ try {
   // 2. BUILD CSV CONTENT
   // ──────────────────────────────
   const rowCount   = leadCount;
-  const csvContent = `salesNavUrl,leadCount,fileName\n${salesNavUrl},${leadCount},${serviceTagName}`;
+  const csvContent = 'salesNavUrl,leadCount,fileName\n' + `"${salesNavUrl}",${leadCount},${serviceTagName}`;
   const fileName   = serviceTagName.replace(/[^a-zA-Z0-9]/g, '_') + '_' + new Date().toISOString().replace(/[:.]/g, '-') + '.csv';
 
   console.log('CSV Content:\n', csvContent);
