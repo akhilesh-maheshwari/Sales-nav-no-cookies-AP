@@ -1,7 +1,12 @@
 {
-  "name": "sales-navigator-scraper",
+  "name": "sales-navigator-scraper-no-cookies",
   "version": "0.1.0",
   "type": "module",
+  "description": "Scrape leads from LinkedIn Sales Navigator via Boomerang.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js"
+  },
   "dependencies": {
     "apify": "^3.0.0"
   }
