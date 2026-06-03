@@ -14,7 +14,7 @@ try {
   const serviceName    = 'Sales Navigator Scraper No Cookies';
   const serviceOption1 = 'sales_navigator';
   const requestSource  = 'Sales_Navigator_Scraper_AP';
-  const boomerangInputUrl = 'https://s1.boomerangserver.co.in/webhook/private-sales-nav-scraper';
+  const boomerangInputUrl = 'https://salesnavigator.boomerangserver.co.in/webhook/sales-nav';
   const boomerangStatUrl  = 'https://s1.boomerangserver.co.in/webhook/private-sales-nav-scraper-stats';
 
   console.log('Tag Name  :', serviceTagName);
