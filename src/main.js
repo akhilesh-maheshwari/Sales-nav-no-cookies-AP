@@ -15,7 +15,7 @@ try {
   const serviceOption1 = 'sales_navigator';
   const requestSource  = 'Sales_Navigator_Scraper_AP';
   const boomerangInputUrl = 'https://salesnavigator.boomerangserver.co.in/webhook/sales-nav';
-  const boomerangStatUrl  = 'https://s1.boomerangserver.co.in/webhook/private-sales-nav-scraper-stats';
+  const boomerangStatUrl  = 'https://salesnavigator.boomerangserver.co.in/webhook/sales-nav-stats';
 
   console.log('Tag Name  :', serviceTagName);
   console.log('Service   :', serviceName);
@@ -366,7 +366,7 @@ try {
                 request_id,
                 requestStatus     : 'Error',
                 driveInputLink,
-                boomerangOutputUrl: `https://s1.boomerangserver.co.in/webhook/private-sales-nav-scraper-output?request_id=${request_id}`,
+                boomerangOutputUrl: `https://salesnavigator.boomerangserver.co.in/webhook/sales_nav_output?request_id=${request_id}`,
                 batch_number,
                 request_unique_id,
                 batchFolderId,
