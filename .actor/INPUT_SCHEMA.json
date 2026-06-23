@@ -27,7 +27,7 @@
       "editor": "select",
       "enum": ["Exports", "Email + Enrichment", "Email + Waterfall"],
       "enumTitles": ["Exports", "Email + Enrichment", "Email + Waterfall"],
-      "default": "Exports"
+      "prefill": "Exports"
     },
     "fileName": {
       "title": "Name your result file",
