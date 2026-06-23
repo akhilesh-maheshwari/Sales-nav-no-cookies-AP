@@ -12,13 +12,23 @@ try {
   const salesNavUrl    = input.salesNavUrl || '';
   const leadCount      = parseInt(input.leadCount || '100');
   const serviceName    = 'Sales Navigator Search Export';
-  const serviceOption1 = 'sales_navigator';
   const requestSource  = 'Sales_Navigator_Scraper_AP';
   const boomerangInputUrl = 'https://salesnavigator.boomerangserver.co.in/webhook/sales-navigator';
   const boomerangStatUrl  = 'https://salesnavigator.boomerangserver.co.in/webhook/sales-nav-stats';
 
+  // Map service dropdown to serviceOption1 value
+  const serviceOptionMap = {
+    'Exports'            : 'sales_navigator',
+    'Email + Enrichment' : 'email_enrichment',
+    'Email + Waterfall'  : 'email_waterfall'
+  };
+  const selectedService = input.service || 'Exports';
+  const serviceOption1  = serviceOptionMap[selectedService] || 'sales_navigator';
+
   console.log('Tag Name  :', serviceTagName);
   console.log('Service   :', serviceName);
+  console.log('Selected  :', selectedService);
+  console.log('Option 1  :', serviceOption1);
   console.log('Lead Count:', leadCount);
   console.log('URL       :', salesNavUrl);
 
