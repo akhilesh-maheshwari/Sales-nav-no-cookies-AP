@@ -11,7 +11,7 @@ try {
   const serviceTagName = input.fileName    || '';
   const salesNavUrl    = input.salesNavUrl || '';
   const leadCount      = parseInt(input.leadCount || '100');
-  const serviceName    = 'Sales Navigator Scraper No Cookies';
+  const serviceName    = 'Sales Navigator Search Export';
   const serviceOption1 = 'sales_navigator';
   const requestSource  = 'Sales_Navigator_Scraper_AP';
   const boomerangInputUrl = 'https://salesnavigator.boomerangserver.co.in/webhook/sales-navigator';
