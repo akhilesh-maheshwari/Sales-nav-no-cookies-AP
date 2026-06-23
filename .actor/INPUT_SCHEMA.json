@@ -20,6 +20,15 @@
       "maximum": 2500,
       "editor": "number"
     },
+    "service": {
+      "title": "Select Service",
+      "type": "string",
+      "description": "Choose the type of enrichment service to run on your leads.",
+      "editor": "select",
+      "enum": ["Exports", "Email + Enrichment", "Email + Waterfall"],
+      "enumTitles": ["Exports", "Email + Enrichment", "Email + Waterfall"],
+      "default": "Exports"
+    },
     "fileName": {
       "title": "Name your result file",
       "type": "string",
@@ -28,5 +37,5 @@
       "prefill": "my_leads_export"
     }
   },
-  "required": ["salesNavUrl", "leadCount", "fileName"]
+  "required": ["salesNavUrl", "leadCount", "service", "fileName"]
 }
