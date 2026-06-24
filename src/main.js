@@ -16,14 +16,8 @@ try {
   const boomerangInputUrl = 'https://salesnavigator.boomerangserver.co.in/webhook/sales-navigator';
   const boomerangStatUrl  = 'https://salesnavigator.boomerangserver.co.in/webhook/sales-nav-stats';
 
-  // Map service dropdown to serviceOption1 value
-  const serviceOptionMap = {
-    'Exports'            : 'sales_navigator',
-    'Email + Enrichment' : 'email_enrichment',
-    'Email + Waterfall'  : 'email_waterfall'
-  };
   const selectedService = input.service || 'Exports';
-  const serviceOption1  = serviceOptionMap[selectedService] || 'sales_navigator';
+  const serviceOption1  = selectedService;
 
   console.log('Tag Name  :', serviceTagName);
   console.log('Service   :', serviceName);
