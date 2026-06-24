@@ -69,35 +69,15 @@ try {
   console.log('Time    :', time);
 
   // ──────────────────────────────
-  // 5. FREE TRIAL CHECK
+  // 5. CALCULATE COST
   // ──────────────────────────────
-  const FREE_TRIAL_LEADS = 50;
-
-  const trialStore  = await Actor.openKeyValueStore('boomerang-free-trials-sales-navigator');
-  const trialRecord = await trialStore.getValue(userId);
-  const isFirstTime = !trialRecord;
-
-  let freeLeadsRemaining = 0;
-
-  if (isFirstTime) {
-    freeLeadsRemaining = FREE_TRIAL_LEADS;
-    console.log(`\n🎁 First-time user! ${FREE_TRIAL_LEADS} free leads applied.`);
-  } else {
-    console.log(`\n👤 Returning user. Free trial already used on ${trialRecord.usedAt}. Full charges apply.`);
-  }
-
-  // ──────────────────────────────
-  // 6. CALCULATE COST
-  // ──────────────────────────────
-  const chargeableRows = Math.max(0, rowCount - freeLeadsRemaining);
-  const creditsCost    = parseFloat((chargeableRows * 0.005).toFixed(3));
+  const creditsCost = parseFloat((rowCount * 0.005).toFixed(3));
   console.log('Lead count     :', rowCount);
-  console.log('Free leads     :', isFirstTime ? FREE_TRIAL_LEADS : 0);
-  console.log('Chargeable rows:', chargeableRows);
+  console.log('Chargeable rows:', rowCount);
   console.log('Credits cost   : $', creditsCost);
 
   // ──────────────────────────────
-  // 7. FETCH DRIVE CSV + PUSH ROWS
+  // 6. FETCH DRIVE CSV + PUSH ROWS
   // ──────────────────────────────
   const fetchAndPushDriveData = async (outputLink, batch_number) => {
     try {
@@ -165,7 +145,7 @@ try {
   };
 
   // ──────────────────────────────
-  // 8. STEP 1 — TRIGGER MASTER FLOW
+  // 7. STEP 1 — TRIGGER MASTER FLOW
   // ──────────────────────────────
   console.log('\n════════════════════════════════════');
   console.log('Step 1 : Setting up master & batches');
@@ -227,13 +207,12 @@ try {
   console.log('   Total Batches :', total_batches);
 
   // ──────────────────────────────
-  // 9. STEP 2 — PROCESS BATCHES
+  // 8. STEP 2 — PROCESS BATCHES
   // ──────────────────────────────
   let round              = 0;
   let allOutputLinks     = [];
   let allBatchResults    = [];
   let totalCharged       = 0;
-  let totalFreeUsed      = 0;
   let totalRowsDelivered = 0;
 
   const getNextBatchJobs = async () => {
@@ -468,7 +447,7 @@ try {
       });
       allOutputLinks.push(outputLink);
 
-      // ── CHARGE AFTER DELIVERY — based on leadCount, not rowsPushed ──
+      // ── CHARGE AFTER DELIVERY — based on batch_size / leadCount ──
       let rowsPushed = 0;
       if (outputLink) {
         rowsPushed = await fetchAndPushDriveData(outputLink, batch_number);
@@ -479,45 +458,23 @@ try {
       if (rowsPushed > 0) {
         totalRowsDelivered += rowsPushed;
 
-        if (isFirstTime && totalFreeUsed === 0) {
-          await trialStore.setValue(userId, {
-            usedAt  : new Date().toISOString(),
-            runId,
-            service : serviceName,
-            rowCount
-          });
-          console.log(`  🎁 Free trial marked as used after first successful delivery.`);
-        }
+        const billableLeads = job.batch_size || leadCount;
+        const batchCost     = parseFloat((billableLeads * 0.005).toFixed(3));
+        totalCharged       += batchCost;
 
-        // Charge based on leadCount (requested), not rowsPushed (delivered)
-        const billableLeads   = job.batch_size || leadCount;
-        const freeForBatch    = Math.min(freeLeadsRemaining, billableLeads);
-        const chargeableLeads = billableLeads - freeForBatch;
-        freeLeadsRemaining   -= freeForBatch;
-        totalFreeUsed        += freeForBatch;
+        console.log(`  💳 Batch ${batch_number} — Charging ${billableLeads} leads ($${batchCost}). Total: $${totalCharged.toFixed(3)}`);
 
-        if (freeForBatch > 0) {
-          console.log(`  🎁 Batch ${batch_number} — ${freeForBatch} leads FREE (trial). ${chargeableLeads} leads chargeable.`);
-        }
-
-        if (chargeableLeads > 0) {
-          const batchCost = parseFloat((chargeableLeads * 0.005).toFixed(3));
-          totalCharged   += batchCost;
-          console.log(`  💳 Batch ${batch_number} — Charging ${chargeableLeads} leads ($${batchCost}). Total: $${totalCharged.toFixed(3)}`);
-          try {
-            await Actor.charge({ eventName: serviceOption1, count: chargeableLeads });
-          } catch (chargeErr) {
-            const remainingLeads = rowCount - totalRowsDelivered;
-            const remainingCost  = parseFloat((remainingLeads * 0.005).toFixed(3));
-            console.log(`\n❌ Insufficient Apify credits — run stopped.`);
-            console.log(`✅ Leads delivered : ${totalRowsDelivered}`);
-            console.log(`💳 Total charged   : $${totalCharged.toFixed(3)}`);
-            console.log(`⏳ Remaining leads : ${remainingLeads} (needs $${remainingCost} more)`);
-            console.log(`👉 Add funds at apify.com/billing and re-run.`);
-            await Actor.exit('Insufficient credits. Add funds at apify.com/billing and re-run.');
-          }
-        } else {
-          console.log(`  ✅ Batch ${batch_number} — Fully covered by free trial. No charge.`);
+        try {
+          await Actor.charge({ eventName: serviceOption1, count: billableLeads });
+        } catch (chargeErr) {
+          const remainingLeads = rowCount - totalRowsDelivered;
+          const remainingCost  = parseFloat((remainingLeads * 0.005).toFixed(3));
+          console.log(`\n❌ Insufficient Apify credits — run stopped.`);
+          console.log(`✅ Leads delivered : ${totalRowsDelivered}`);
+          console.log(`💳 Total charged   : $${totalCharged.toFixed(3)}`);
+          console.log(`⏳ Remaining leads : ${remainingLeads} (needs $${remainingCost} more)`);
+          console.log(`👉 Add funds at apify.com/billing and re-run.`);
+          await Actor.exit('Insufficient credits. Add funds at apify.com/billing and re-run.');
         }
       } else {
         console.log(`  ⚠️ Batch ${batch_number} — 0 rows pushed, skipping charge.`);
@@ -544,7 +501,7 @@ try {
   }
 
   // ──────────────────────────────
-  // 10. FINAL SUMMARY
+  // 9. FINAL SUMMARY
   // ──────────────────────────────
   const completedCount = allBatchResults.filter(b => b.status === 'Completed').length;
   const errorCount     = allBatchResults.filter(b => b.status !== 'Completed').length;
@@ -553,7 +510,6 @@ try {
   console.log('🎉 ALL BATCHES COMPLETED!');
   console.log('════════════════════════════════════');
   console.log('Run ID          :', runId);
-  console.log('Free leads used :', totalFreeUsed);
   console.log('Total Batches   :', allBatchResults.length);
   console.log('Completed       :', completedCount);
   console.log('Errors          :', errorCount);
