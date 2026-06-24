@@ -236,8 +236,7 @@ try {
             service_option_1 : serviceOption1,
             service_name     : serviceName,
             sales_navigator_request_url: salesNavUrl,
-            total_size : String(leadCount)
-
+            total_size : String(leadCount),
             request_source   : requestSource
           })
         }
