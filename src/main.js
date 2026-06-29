@@ -34,13 +34,25 @@ try {
   // PRICING MAP
   // ──────────────────────────────
   const PRICE_PER_LEAD = {
-  'Exports'          : 0.005,
-  'Email_Enrichment' : 0.010,
-  'Email_Waterfall'  : 0.015,
-};
+    'Exports'            : 0.005,
+    'Email + Enrichment' : 0.010,
+    'Email + Waterfall'  : 0.015,
+  };
 
   const pricePerLead = PRICE_PER_LEAD[serviceOption1] ?? 0.005;
   console.log('Price/lead : $', pricePerLead);
+
+  // ──────────────────────────────
+  // EVENT NAME REMAP (Apify event names can't have spaces or +)
+  // ──────────────────────────────
+  const EVENT_NAME_MAP = {
+    'Exports'            : 'Exports',
+    'Email + Enrichment' : 'Email_Enrichment',
+    'Email + Waterfall'  : 'Email_Waterfall',
+  };
+
+  const chargeEventName = EVENT_NAME_MAP[serviceOption1] || 'Exports';
+  console.log('Charge event :', chargeEventName);
 
   // ──────────────────────────────
   // 2. VALIDATE URL
@@ -461,7 +473,7 @@ try {
       });
       allOutputLinks.push(outputLink);
 
-      // ── CHARGE AFTER DELIVERY — based on service pricing ──
+      // ── CHARGE AFTER DELIVERY ──
       let rowsPushed = 0;
       if (outputLink) {
         rowsPushed = await fetchAndPushDriveData(outputLink, batch_number);
@@ -479,7 +491,7 @@ try {
         console.log(`  💳 Batch ${batch_number} — Charging ${billableLeads} leads @ $${pricePerLead}/lead ($${batchCost}). Total: $${totalCharged.toFixed(3)}`);
 
         try {
-          await Actor.charge({ eventName: serviceOption1, count: billableLeads });
+          await Actor.charge({ eventName: chargeEventName, count: billableLeads });
         } catch (chargeErr) {
           const remainingLeads = rowCount - totalRowsDelivered;
           const remainingCost  = parseFloat((remainingLeads * pricePerLead).toFixed(3));
@@ -525,6 +537,7 @@ try {
   console.log('════════════════════════════════════');
   console.log('Run ID          :', runId);
   console.log('Service         :', serviceOption1);
+  console.log('Charge event    :', chargeEventName);
   console.log('Price/lead      : $', pricePerLead);
   console.log('Total Batches   :', allBatchResults.length);
   console.log('Completed       :', completedCount);
