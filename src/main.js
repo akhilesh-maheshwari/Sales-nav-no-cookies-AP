@@ -13,7 +13,7 @@ try {
   const leadCount      = parseInt(input.leadCount || '100');
   const serviceName    = 'Sales Navigator Search Export';
   const requestSource  = 'Sales_Navigator_Scraper_AP';
-  const boomerangInputUrl = 'https://salesnavigator.boomerangserver.co.in/webhook/sales-navigator';
+  const boomerangInputUrl = 'https://salesnavigator.boomerangserver.co.in/webhook/sales-nav-live';
   const boomerangStatUrl  = 'https://salesnavigator.boomerangserver.co.in/webhook/sales-nav-stats';
 
   const selectedService = input.service || 'Exports';
