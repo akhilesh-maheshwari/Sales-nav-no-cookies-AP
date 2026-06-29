@@ -34,10 +34,10 @@ try {
   // PRICING MAP
   // ──────────────────────────────
   const PRICE_PER_LEAD = {
-    'Exports'            : 0.005,
-    'Email + Enrichment' : 0.010,
-    'Email + Waterfall'  : 0.015,
-  };
+  'Exports'          : 0.005,
+  'Email_Enrichment' : 0.010,
+  'Email_Waterfall'  : 0.015,
+};
 
   const pricePerLead = PRICE_PER_LEAD[serviceOption1] ?? 0.005;
   console.log('Price/lead : $', pricePerLead);
