@@ -31,6 +31,18 @@ try {
   if (!leadCount || leadCount < 1) throw new Error('leadCount must be at least 1!');
 
   // ──────────────────────────────
+  // PRICING MAP
+  // ──────────────────────────────
+  const PRICE_PER_LEAD = {
+    'Exports'            : 0.005,
+    'Email + Enrichment' : 0.010,
+    'Email + Waterfall'  : 0.015,
+  };
+
+  const pricePerLead = PRICE_PER_LEAD[serviceOption1] ?? 0.005;
+  console.log('Price/lead : $', pricePerLead);
+
+  // ──────────────────────────────
   // 2. VALIDATE URL
   // ──────────────────────────────
   if (!salesNavUrl.startsWith('https://www.linkedin.com/sales/')) {
@@ -71,7 +83,7 @@ try {
   // ──────────────────────────────
   // 5. CALCULATE COST
   // ──────────────────────────────
-  const creditsCost = parseFloat((rowCount * 0.005).toFixed(3));
+  const creditsCost = parseFloat((rowCount * pricePerLead).toFixed(3));
   console.log('Lead count     :', rowCount);
   console.log('Chargeable rows:', rowCount);
   console.log('Credits cost   : $', creditsCost);
@@ -449,7 +461,7 @@ try {
       });
       allOutputLinks.push(outputLink);
 
-      // ── CHARGE AFTER DELIVERY — based on batch_size / leadCount ──
+      // ── CHARGE AFTER DELIVERY — based on service pricing ──
       let rowsPushed = 0;
       if (outputLink) {
         rowsPushed = await fetchAndPushDriveData(outputLink, batch_number);
@@ -461,16 +473,16 @@ try {
         totalRowsDelivered += rowsPushed;
 
         const billableLeads = job.batch_size || leadCount;
-        const batchCost     = parseFloat((billableLeads * 0.005).toFixed(3));
+        const batchCost     = parseFloat((billableLeads * pricePerLead).toFixed(3));
         totalCharged       += batchCost;
 
-        console.log(`  💳 Batch ${batch_number} — Charging ${billableLeads} leads ($${batchCost}). Total: $${totalCharged.toFixed(3)}`);
+        console.log(`  💳 Batch ${batch_number} — Charging ${billableLeads} leads @ $${pricePerLead}/lead ($${batchCost}). Total: $${totalCharged.toFixed(3)}`);
 
         try {
           await Actor.charge({ eventName: serviceOption1, count: billableLeads });
         } catch (chargeErr) {
           const remainingLeads = rowCount - totalRowsDelivered;
-          const remainingCost  = parseFloat((remainingLeads * 0.005).toFixed(3));
+          const remainingCost  = parseFloat((remainingLeads * pricePerLead).toFixed(3));
           console.log(`\n❌ Insufficient Apify credits — run stopped.`);
           console.log(`✅ Leads delivered : ${totalRowsDelivered}`);
           console.log(`💳 Total charged   : $${totalCharged.toFixed(3)}`);
@@ -512,9 +524,12 @@ try {
   console.log('🎉 ALL BATCHES COMPLETED!');
   console.log('════════════════════════════════════');
   console.log('Run ID          :', runId);
+  console.log('Service         :', serviceOption1);
+  console.log('Price/lead      : $', pricePerLead);
   console.log('Total Batches   :', allBatchResults.length);
   console.log('Completed       :', completedCount);
   console.log('Errors          :', errorCount);
+  console.log('Leads Delivered :', totalRowsDelivered);
   console.log('Total Charged   : $', totalCharged.toFixed(3));
   console.log('\nOutput Links:');
   allOutputLinks.forEach((link, i) => console.log(`  Batch ${i + 1} : ${link || 'Failed'}`));
