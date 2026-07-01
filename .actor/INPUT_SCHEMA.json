@@ -16,7 +16,7 @@
       "type": "integer",
       "description": "Number of leads to scrape. Choose in multiples of 100, up to 2500.",
       "default": 100,
-      "minimum": 50,
+      "minimum": 10,
       "maximum": 2500,
       "editor": "number"
     },
