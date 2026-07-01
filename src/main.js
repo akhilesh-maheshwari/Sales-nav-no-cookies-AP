@@ -154,38 +154,8 @@ try {
       const items = [];
       for (const row of data) {
         if (!row.some(f => f !== '')) continue;
-
-        const rawObj = {};
-        headers.forEach((h, i) => { rawObj[h] = row[i] !== undefined ? row[i] : ''; });
-
-        // ── Fixed column order for Apify dataset display ──
-        const rowObj = {
-          'First Name'           : rawObj['First Name']           || '',
-          'Last Name'            : rawObj['Last Name']            || '',
-          'Email'                : rawObj['Email']                || '',
-          'Summary'              : rawObj['Summary']              || '',
-          'Job Title'            : rawObj['Job Title']            || '',
-          'Job Description'      : rawObj['Job Description']      || '',
-          'Job Started On'       : rawObj['Job Started On']       || '',
-          'LinkedIn URL'         : rawObj['LinkedIn URL']         || '',
-          'Location'             : rawObj['Location']             || '',
-          'Company LinkedIn ID'  : rawObj['Company LinkedIn ID']  || '',
-          'Company LinkedIn URL' : rawObj['Company LinkedIn URL'] || '',
-          'Company'              : rawObj['Company']              || '',
-          'Company Website'      : rawObj['Company Website']      || '',
-          'Company Description'  : rawObj['Company Description']  || '',
-          'Company Specialities' : rawObj['Company Specialities'] || '',
-          'Company Employees'    : rawObj['Company Employees']    || '',
-          'Company Industry'     : rawObj['Company Industry']     || '',
-          'Company Founded Year' : rawObj['Company Founded Year'] || '',
-          'Company Location'     : rawObj['Company Location']     || '',
-          'Premium'              : rawObj['Premium']              || '',
-          'Profile Picture URL'  : rawObj['Profile Picture URL']  || '',
-          'Member URN'           : rawObj['Member URN']           || '',
-          'Public Identifier'    : rawObj['Public Identifier']    || '',
-          'Recently Hired'       : rawObj['Recently Hired']       || '',
-        };
-
+        const rowObj = {};
+        headers.forEach((h, i) => { rowObj[h] = row[i] !== undefined ? row[i] : ''; });
         items.push(rowObj);
       }
       if (items.length > 0) await Actor.pushData(items);
@@ -483,7 +453,7 @@ try {
       });
       allOutputLinks.push(outputLink);
 
-      // ── CHARGE AFTER DELIVERY ──
+      // ── CHARGE AFTER DELIVERY — based on actual rows pushed ──
       let rowsPushed = 0;
       if (outputLink) {
         rowsPushed = await fetchAndPushDriveData(outputLink, batch_number);
@@ -494,7 +464,7 @@ try {
       if (rowsPushed > 0) {
         totalRowsDelivered += rowsPushed;
 
-        const billableLeads = job.batch_size || leadCount;
+        const billableLeads = rowsPushed; // charge for exactly what was delivered
         const batchCost     = parseFloat((billableLeads * pricePerLead).toFixed(3));
         totalCharged       += batchCost;
 
