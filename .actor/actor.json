@@ -1,9 +1,60 @@
 {
   "actorSpecification": 1,
-  "name": "sales-navigator-scraper-no-cookies",
+  "name": "sales-nav-no-cookies-ap",
   "title": "Sales Navigator Scraper No Cookies",
-  "version": "0.1",
-  "buildTag": "latest",
-  "environmentVariables": {},
-  "dockerfile": "./Dockerfile"
+  "description": "Scrape leads from LinkedIn Sales Navigator without cookies.",
+  "version": "1.0",
+  "output": {
+    "actorOutputSchemaVersion": 1,
+    "title": "Sales Navigator Scraper Output",
+    "description": "Scraped LinkedIn Sales Navigator lead data including profile, job, and company information.",
+    "properties": {
+      "results": {
+        "type": "string",
+        "title": "Sales Navigator Leads",
+        "template": "{{links.apiDefaultDatasetUrl}}/items"
+      }
+    }
+  },
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "views": {
+        "overview": {
+          "title": "Overview",
+          "transformation": {
+            "fields": [
+              "First Name",
+              "Last Name",
+              "Email",
+              "Summary",
+              "Job Title",
+              "Job Description",
+              "Job Started On",
+              "LinkedIn URL",
+              "Location",
+              "Company LinkedIn ID",
+              "Company LinkedIn URL",
+              "Company",
+              "Company Website",
+              "Company Description",
+              "Company Specialities",
+              "Company Employees",
+              "Company Industry",
+              "Company Founded Year",
+              "Company Location",
+              "Premium",
+              "Profile Picture URL",
+              "Member URN",
+              "Public Identifier",
+              "Recently Hired"
+            ]
+          },
+          "display": {
+            "component": "table"
+          }
+        }
+      }
+    }
+  }
 }
