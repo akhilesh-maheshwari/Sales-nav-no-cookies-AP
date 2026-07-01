@@ -154,8 +154,38 @@ try {
       const items = [];
       for (const row of data) {
         if (!row.some(f => f !== '')) continue;
-        const rowObj = {};
-        headers.forEach((h, i) => { rowObj[h] = row[i] !== undefined ? row[i] : ''; });
+
+        const rawObj = {};
+        headers.forEach((h, i) => { rawObj[h] = row[i] !== undefined ? row[i] : ''; });
+
+        // ── Fixed column order for Apify dataset display ──
+        const rowObj = {
+          'First Name'           : rawObj['First Name']           || '',
+          'Last Name'            : rawObj['Last Name']            || '',
+          'Email'                : rawObj['Email']                || '',
+          'Summary'              : rawObj['Summary']              || '',
+          'Job Title'            : rawObj['Job Title']            || '',
+          'Job Description'      : rawObj['Job Description']      || '',
+          'Job Started On'       : rawObj['Job Started On']       || '',
+          'LinkedIn URL'         : rawObj['LinkedIn URL']         || '',
+          'Location'             : rawObj['Location']             || '',
+          'Company LinkedIn ID'  : rawObj['Company LinkedIn ID']  || '',
+          'Company LinkedIn URL' : rawObj['Company LinkedIn URL'] || '',
+          'Company'              : rawObj['Company']              || '',
+          'Company Website'      : rawObj['Company Website']      || '',
+          'Company Description'  : rawObj['Company Description']  || '',
+          'Company Specialities' : rawObj['Company Specialities'] || '',
+          'Company Employees'    : rawObj['Company Employees']    || '',
+          'Company Industry'     : rawObj['Company Industry']     || '',
+          'Company Founded Year' : rawObj['Company Founded Year'] || '',
+          'Company Location'     : rawObj['Company Location']     || '',
+          'Premium'              : rawObj['Premium']              || '',
+          'Profile Picture URL'  : rawObj['Profile Picture URL']  || '',
+          'Member URN'           : rawObj['Member URN']           || '',
+          'Public Identifier'    : rawObj['Public Identifier']    || '',
+          'Recently Hired'       : rawObj['Recently Hired']       || '',
+        };
+
         items.push(rowObj);
       }
       if (items.length > 0) await Actor.pushData(items);
@@ -260,7 +290,7 @@ try {
             service_option_1 : serviceOption1,
             service_name     : serviceName,
             sales_navigator_request_url: salesNavUrl,
-            total_size : String(leadCount),
+            total_size       : String(leadCount),
             request_source   : requestSource
           })
         }
@@ -304,11 +334,20 @@ try {
       batchJobs.map(async (job) => {
         const { request_id, driveInputLink, batch_number } = job;
         console.log(`  ⏳ Batch ${batch_number} — Polling status (request_id: ${request_id})...`);
+        console.log(`  ℹ️  Batch ${batch_number} — Polling every 5 min until completed (no timeout).`);
 
-        const maxAttempts  = 10;
-        const pollInterval = 180000;
+        const pollInterval = 5 * 60 * 1000; // 5 minutes
+        let attempt = 0;
 
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        // ── Wait 30s before first poll ──
+        console.log(`  ⏳ Batch ${batch_number} — Waiting 30s before first poll...`);
+        await new Promise(r => setTimeout(r, 30000));
+
+        while (true) {
+          attempt++;
+          const elapsedMin = ((attempt - 1) * 5);
+          console.log(`  🔍 Batch ${batch_number} — Poll attempt ${attempt} (~${elapsedMin} min elapsed)...`);
+
           try {
             const statusRes = await fetch(
               'https://frontend.boomerangserver.co.in/webhook/Status_and_output_universal',
@@ -335,63 +374,34 @@ try {
             const statusText = await statusRes.text();
 
             if (statusText.includes('<html>') || statusText.includes('504')) {
-              console.log(`  ⚠️ Batch ${batch_number} — 504, retrying (${attempt}/${maxAttempts})...`);
+              console.log(`  ⚠️ Batch ${batch_number} — 504, retrying in 5 min (attempt ${attempt})...`);
               await new Promise(r => setTimeout(r, pollInterval));
               continue;
             }
 
-            const statusData = JSON.parse(statusText);
+            let statusData;
+            try {
+              statusData = JSON.parse(statusText);
+            } catch (parseErr) {
+              console.log(`  ⚠️ Batch ${batch_number} — Invalid JSON on attempt ${attempt}, retrying in 5 min...`);
+              await new Promise(r => setTimeout(r, pollInterval));
+              continue;
+            }
+
             console.log(`  ✅ Batch ${batch_number} status:`, statusData.status);
 
             if (statusData.status === 'Completed' || statusData.status === 'Failed') {
               return { ...statusData, job };
             }
 
-            console.log(`  🔄 Batch ${batch_number} still processing, attempt ${attempt}/${maxAttempts}. Waiting 3 min...`);
+            console.log(`  🔄 Batch ${batch_number} still processing, attempt ${attempt}. Waiting 5 min...`);
             await new Promise(r => setTimeout(r, pollInterval));
 
           } catch (err) {
-            console.log(`  ⚠️ Batch ${batch_number} poll error (attempt ${attempt}): ${err.message}`);
+            console.log(`  ⚠️ Batch ${batch_number} poll error (attempt ${attempt}): ${err.message}. Retrying in 5 min...`);
             await new Promise(r => setTimeout(r, pollInterval));
           }
         }
-
-        console.log(`  ❌ Batch ${batch_number} timed out after ${maxAttempts} attempts.`);
-
-        try {
-          await fetch(
-            'https://frontend.boomerangserver.co.in/webhook/Status_and_output_universal',
-            {
-              method : 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              signal : AbortSignal.timeout(30000),
-              body   : JSON.stringify({
-                userId,
-                runId,
-                time,
-                serviceTagName,
-                rowCount          : job.batch_size || rowCount,
-                creditsCost,
-                request_id,
-                requestStatus     : 'Error',
-                driveInputLink,
-                boomerangOutputUrl: `https://salesnavigator.boomerangserver.co.in/webhook/sales_nav_output?request_id=${request_id}`,
-                batch_number,
-                request_unique_id,
-                batchFolderId,
-                service_option_1  : serviceOption1,
-                service_name      : serviceName,
-                request_source    : requestSource,
-                reason            : `Timed out after ${maxAttempts} attempts`
-              })
-            }
-          );
-          console.log(`  📤 Batch ${batch_number} — Error status sent to webhook.`);
-        } catch (err) {
-          console.log(`  ⚠️ Batch ${batch_number} — Failed to notify webhook: ${err.message}`);
-        }
-
-        return { status: 'Error', job };
       })
     );
 
