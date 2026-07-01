@@ -419,7 +419,7 @@ try {
         continue;
       }
 
-      const boomerangOutputUrl = `https://s1.boomerangserver.co.in/webhook/private-sales-nav-scraper-output?request_id=${request_id}`;
+      const boomerangOutputUrl = `https://salesnavigator.boomerangserver.co.in/webhook/sales_nav_output?request_id=${request_id}`;
 
       let outputLink = '';
       try {
