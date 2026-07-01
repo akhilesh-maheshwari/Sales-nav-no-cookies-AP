@@ -1,4 +1,28 @@
 {
   "actorSpecification": 1,
-  "fields": {}
+  "fields": [
+    { "name": "First Name",           "type": "string" },
+    { "name": "Last Name",            "type": "string" },
+    { "name": "LinkedIn URL",         "type": "string" },
+    { "name": "Public Identifier",    "type": "string" },
+    { "name": "Member URN",           "type": "string" },
+    { "name": "Job Title",            "type": "string" },
+    { "name": "Job Description",      "type": "string" },
+    { "name": "Job Started On",       "type": "string" },
+    { "name": "Summary",              "type": "string" },
+    { "name": "Location",             "type": "string" },
+    { "name": "Premium",              "type": "string" },
+    { "name": "Profile Picture URL",  "type": "string" },
+    { "name": "Recently Hired",       "type": "string" },
+    { "name": "Company",              "type": "string" },
+    { "name": "Company LinkedIn ID",  "type": "string" },
+    { "name": "Company LinkedIn URL", "type": "string" },
+    { "name": "Company Website",      "type": "string" },
+    { "name": "Company Description",  "type": "string" },
+    { "name": "Company Specialities", "type": "string" },
+    { "name": "Company Employees",    "type": "string" },
+    { "name": "Company Industry",     "type": "string" },
+    { "name": "Company Founded Year", "type": "string" },
+    { "name": "Company Location",     "type": "string" }
+  ]
 }
